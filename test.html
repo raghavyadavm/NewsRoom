@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>Babylon - Basic scene</title>
+    <script src="../NewsRoom/js/babylon.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+    <!--script src="canon.js"></script-->
+    <style type="text/css">
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+    </style>
+</head>
+
+<body>
+<canvas id="renderCanvas"></canvas>
+
+<script >
+    var canvas = document.getElementById("renderCanvas");
+
+    var engine = new BABYLON.Engine(canvas, true);
+
+    //$('#button').remove();
+
+    // add the button to the playground document
+    // this is not needed if the button has already been added in the html
+    //$('body').append('<button id="button" style="position: absolute; right: 10px; top: 100px;">Click Me!</button>');
+
+
+
+    BABYLON.SceneLoader.Load("", "Test1.babylon", engine, function(scene){
+
+
+        scene.executeWhenReady(function () {
+
+            // camera
+            var camera = scene.getCameraByName("Camera");
+            scene.activeCamera = camera;
+            scene.activeCamera.attachControl(canvas);
+            scene.clearColor = new BABYLON.Color3(1,1,1);
+
+            //light
+            //var light0 = new BABYLON.PointLight("light", new BABYLON.Vector3(0, 5, 0), scene);
+            // light0.diffuse = new BABYLON.Color3(1, 1, 1);
+            //light0.specular = new BABYLON.Color3(0, 0, 0);
+            //light0.groundColor = new BABYLON.Color3(0, 0, 0);
+
+            var Ceiling = scene.getMeshByName("Ceiling");
+            var materialFloor = new BABYLON.StandardMaterial("texture1", scene);
+            Ceiling.material = materialFloor;
+            materialFloor.diffuseTexture = new BABYLON.Texture("wood-wall-panel-textures.jpg", scene);
+
+
+
+            var BigCouch = scene.getMeshByName("Room");
+            var materialCouch = new BABYLON.StandardMaterial("texture1", scene);
+            BigCouch.material = materialCouch;
+            materialCouch.diffuseTexture = new BABYLON.Texture("wood-wall-panel-textures.jpg", scene);
+
+            var Floor = scene.getMeshByName("Floor");
+            var materialFloor = new BABYLON.StandardMaterial("texture1", scene);
+            Floor.material = materialFloor;
+            materialFloor.diffuseTexture = new BABYLON.Texture("Flooring.jpg", scene);
+
+
+
+            //Collisions
+            scene.collisionsEnabled = true;
+            camera.checkCollisions = true;
+            Floor.checkCollisions = true;
+            Ceiling.checkCollisions = true;
+            BigCouch.checkCollisions = true;
+
+            engine.runRenderLoop(function(){
+                scene.render();
+            });
+        });
+    });
+
+    window.addEventListener("resize", function(){
+        engine.resize();
+    });
+</script>
+</body>
+</html>
