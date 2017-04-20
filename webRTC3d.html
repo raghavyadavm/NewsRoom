@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+    <title>Video</title>
+    <!-- Babylon.js -->
+    <script src="http://www.babylonjs.com/hand.minified-1.2.js"></script>
+    <script src="http://www.babylonjs.com/cannon.js"></script>
+    <script src="http://www.babylonjs.com/oimo.js"></script>
+    <script src="http://www.babylonjs.com/babylon.js"></script>
+    <script src="https://cdn.jsdelivr.net/hls.js/latest/hls.min.js"></script>
+    <style>
+        html, body {
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        #renderCanvas {
+            width: 100%;
+            height: 80%;
+            touch-action: none;
+        }
+
+        #liveVideo {
+            visibility: hidden;
+        }
+
+        video.hidden {
+            display:none;
+        }
+    </style>
+</head>
+<body>
+<div id="rtc">
+
+    <video class='hidden' id="localVideo" autoplay></video>
+
+    <video class='hidden' id="remoteVideo" autoplay></video>
+
+
+</div>
+
+<button id="startButton">Start</button>
+<button id="callButton">Call</button>
+<button id="hangupButton">Hang Up</button>
+<script src="js/localPeerConnection.js"></script>
+
+<div id="canvasZone">
+    <canvas id="renderCanvas"></canvas>
+</div>
+<div id="liveVideo">
+    <video id="live"></video>
+</div>
+
+<script>
+    if (Hls.isSupported()) {
+        var video11 = document.getElementById('live');
+        var hls = new Hls();
+        hls.loadSource('http://www.streambox.fr/playlists/test_001/stream.m3u8');
+        hls.attachMedia(video11);
+        hls.on(Hls.Events.MANIFEST_PARSED, function () {
+            video11.play();
+        });
+    }
+</script>
+
+<script>
+    var canvas = document.getElementById("renderCanvas");
+    var engine = new BABYLON.Engine(canvas, true);
+    var remoteVideo = document.getElementById('remoteVideo');
+
+    var createScene = function () {
+
+        // This creates a basic Babylon Scene object (non-mesh)
+        var scene = new BABYLON.Scene(engine);
+
+
+        // This creates and positions a free camera (non-mesh)
+        var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(5, 1, -10), scene);
+
+        // This targets the camera to scene origin
+        camera.setTarget(new BABYLON.Vector3(0, 1, 0));
+
+        // This attaches the camera to the canvas
+        camera.attachControl(canvas, true);
+
+        var plane = BABYLON.Mesh.CreatePlane("sphere1", 5, scene);
+        plane.rotation.z = Math.PI;
+
+
+        var mat = new BABYLON.StandardMaterial("mat", scene);
+        mat.diffuseColor = BABYLON.Color3.White();
+
+        BABYLON.VideoTexture.CreateFromWebCam(scene, function (videoTexture) {
+            mat.emissiveTexture = videoTexture;
+            plane.material = mat;
+        }, {maxWidth: 256, maxHeight: 256});
+
+        var tivi1 = BABYLON.Mesh.CreatePlane("plane", 5, scene);
+        tivi1.position = new BABYLON.Vector3(5, 0, 0);
+        tivi1.rotation = new BABYLON.Vector3(0, 0, 0);
+
+        //Creation of the video material
+        var videoMaterial = new BABYLON.StandardMaterial("vidmat", scene);
+        videoMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // helps for tivi lighting
+        var videoTexture = new BABYLON.VideoTexture("video",
+            ["videos/Video2.mp4"], scene);
+        videoMaterial.diffuseTexture = videoTexture;
+        videoMaterial.backFaceCulling = false;
+        tivi1.material = videoMaterial;
+
+        var tivi = BABYLON.Mesh.CreatePlane("plane", 5, scene);
+        tivi.position = new BABYLON.Vector3(10, 0, 0);
+        tivi.rotation = new BABYLON.Vector3(0, 0, 0);
+
+        //Creation of the webrtc material
+        var videoMaterial = new BABYLON.StandardMaterial("vidmat", scene);
+        videoMaterial.emissiveColor = new BABYLON.Color3(1, 1, 1); // helps for tivi lighting
+        var videoTexture = new BABYLON.VideoTexture("video",
+            ["http://clips.vorwaerts-gmbh.de/big_buck_bunny.webm"], scene);
+        videoMaterial.diffuseTexture = videoTexture;
+        videoMaterial.backFaceCulling = false;
+        tivi.material = videoMaterial;
+        videoTexture.video = remoteVideo;
+
+
+
+        return scene;
+    }
+
+
+    var scene = createScene();
+
+    engine.runRenderLoop(function () {
+        scene.render();
+    });
+
+    // Resize
+    window.addEventListener("resize", function () {
+        engine.resize();
+    });
+</script>
+</body>
+</html>
